@@ -1,4 +1,20 @@
 {
-    "idf.flashType": "UART",
-    "idf.portWin": "COM6"
+  "idf.flashType": "UART",
+  "idf.portWin": "COM6",
+  "idf.espIdfPath": "/Users/walidhosseini/esp/v5.5.1/esp-idf",
+  "idf.toolsPath": "/Users/walidhosseini/.espressif",
+  "idf.pythonInstallPath": "/opt/homebrew/bin/python3",
+  "idf.port": "/dev/tty.usbmodem1101",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32s3"
+  },
+  "clangd.path": "/Users/walidhosseini/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=/Users/walidhosseini/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32s3-elf-gcc",
+    "--compile-commands-dir=/Users/walidhosseini/Documents/Coding/ESP32/ESPIDF/waveshare/esp32_JC3248W535EN_work_exampl_lvgl_axs15231b/build"
+  ]
 }
