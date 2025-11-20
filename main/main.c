@@ -74,7 +74,7 @@ static const char *TAG = "lcd_touch_example";
 
 /* Конфигурация аппаратной части */
 #define LCD_HOST  SPI2_HOST  // Используемый SPI-хост
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (20 * 1000 * 1000)  // Тактовая частота SPI
+#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)  // Тактовая частота SPI
 #define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1  // Уровень активного состояния подсветки
 #define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
 
