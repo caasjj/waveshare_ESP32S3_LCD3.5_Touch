@@ -26,12 +26,6 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-
-
-
-
-
-
 /**************************************************************************************************
  *  pinout
  **************************************************************************************************/
@@ -63,7 +57,7 @@
 #define LCD_PIN_NUM_QSPI_TE (GPIO_NUM_38)
 #define LCD_PIN_NUM_QSPI_BL (GPIO_NUM_6)
 
-#define LCD_PIN_NUM_QSPI_TOUCH_SCL (GPIO_NUM_7
+#define LCD_PIN_NUM_QSPI_TOUCH_SCL (GPIO_NUM_7)
 #define LCD_PIN_NUM_QSPI_TOUCH_SDA (GPIO_NUM_8)
 #define LCD_PIN_NUM_QSPI_TOUCH_RST (-1)
 #define LCD_PIN_NUM_QSPI_TOUCH_INT (-1)
@@ -73,25 +67,24 @@
 static const char *TAG = "lcd_touch_example";
 
 /* Конфигурация аппаратной части */
-#define LCD_HOST  SPI2_HOST  // Используемый SPI-хост
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)  // Тактовая частота SPI
-#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1  // Уровень активного состояния подсветки
+#define LCD_HOST SPI2_HOST                            // Используемый SPI-хост
+#define EXAMPLE_LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000) // Тактовая частота SPI
+#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL 1               // Уровень активного состояния подсветки
 #define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
 
 ////////////////////////////
 /* LCD settings */
-//#define LCD_DRAW_BUFF_HEIGHT (60)
+// #define LCD_DRAW_BUFF_HEIGHT (60)
 
-#define DISPLAY_MIRROR_X        false
-#define DISPLAY_MIRROR_Y        false
-#define DISPLAY_SWAP_XY         false
-#define DISPLAY_INVERT_COLOR    false
+#define DISPLAY_MIRROR_X false
+#define DISPLAY_MIRROR_Y false
+#define DISPLAY_SWAP_XY false
+#define DISPLAY_INVERT_COLOR false
 
-//дисплей
-    esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
+// дисплей
+esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
 // Инициализация ввода-вывода управления ЖК-экраном
-    static esp_lcd_panel_handle_t panel_handle = NULL;
-
+static esp_lcd_panel_handle_t panel_handle = NULL;
 
 /* LCD IO and panel */
 
@@ -135,8 +128,7 @@ static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x11, (uint8_t[]){0x00}, 0, 120},
     {0x2C, (uint8_t[]){0x00, 0x00, 0x00, 0x00}, 4, 0},
     {0x2a, (uint8_t[]){0x00, 0x00, 0x01, 0x3f}, 4, 0},
-    {0x2b, (uint8_t[]){0x00, 0x00, 0x01, 0xdf}, 4, 0}
-};
+    {0x2b, (uint8_t[]){0x00, 0x00, 0x01, 0xdf}, 4, 0}};
 
 static void touch_i2c_init(void)
 {
@@ -194,16 +186,17 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     return ESP_OK;
 }
 
-static void btn_event_cb(lv_event_t * e)
+static void btn_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * btn = lv_event_get_target_obj(e);
-    if(code == LV_EVENT_CLICKED) {
+    lv_obj_t *btn = lv_event_get_target_obj(e);
+    if (code == LV_EVENT_CLICKED)
+    {
         static uint8_t cnt = 0;
         cnt++;
 
         /*Get the first child of the button which is the label and change its text*/
-        lv_obj_t * label = lv_obj_get_child(btn, 0);
+        lv_obj_t *label = lv_obj_get_child(btn, 0);
         lv_label_set_text_fmt(label, "Button: %d", cnt);
     }
 }
@@ -213,19 +206,20 @@ static void btn_event_cb(lv_event_t * e)
  */
 void lv_example_get_started_2(void)
 {
-    lv_obj_t * btn = lv_button_create(lv_screen_active());     /*Add a button the current screen*/
-    lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
-    lv_obj_set_size(btn, 120, 50);                          /*Set its size*/
-    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
+    lv_obj_t *btn = lv_button_create(lv_screen_active());       /*Add a button the current screen*/
+    lv_obj_set_pos(btn, 10, 10);                                /*Set its position*/
+    lv_obj_set_size(btn, 120, 50);                              /*Set its size*/
+    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL); /*Assign a callback to the button*/
 
-    lv_obj_t * label = lv_label_create(btn);          /*Add a label to the button*/
-    lv_label_set_text(label, "Button");                     /*Set the labels text*/
+    lv_obj_t *label = lv_label_create(btn); /*Add a label to the button*/
+    lv_label_set_text(label, "Button");     /*Set the labels text*/
     lv_obj_center(label);
 }
 
- void Initialize_AXS15231B_Display() {
+void Initialize_AXS15231B_Display()
+{
 
-ESP_LOGI(TAG, "Initialize QSPI bus");
+    ESP_LOGI(TAG, "Initialize QSPI bus");
     const spi_bus_config_t buscfg = AXS15231B_PANEL_BUS_QSPI_CONFIG(LCD_PIN_NUM_QSPI_PCLK,
                                                                     LCD_PIN_NUM_QSPI_DATA0,
                                                                     LCD_PIN_NUM_QSPI_DATA1,
@@ -236,17 +230,15 @@ ESP_LOGI(TAG, "Initialize QSPI bus");
 
     ESP_LOGI(TAG, "Install panel IO");
 
-
-    esp_lcd_panel_io_spi_config_t io_config = AXS15231B_PANEL_IO_QSPI_CONFIG(LCD_PIN_NUM_QSPI_CS, 
-        NULL, 
-        NULL);
+    esp_lcd_panel_io_spi_config_t io_config = AXS15231B_PANEL_IO_QSPI_CONFIG(LCD_PIN_NUM_QSPI_CS,
+                                                                             NULL,
+                                                                             NULL);
 
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_QSPI_HOST, &io_config, &io_handle_lcd));
 
-    
     // Инициализируем чип драйвера ЖК-дисплея
-ESP_LOGI(TAG, "Install LCD driver");
-  const  axs15231b_vendor_config_t vendor_config = {
+    ESP_LOGI(TAG, "Install LCD driver");
+    const axs15231b_vendor_config_t vendor_config = {
         .init_cmds = lcd_init_cmds, // Uncomment these line if use custom initialization commands
         .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(lcd_init_cmds[0]),
         .flags = {
@@ -264,11 +256,10 @@ ESP_LOGI(TAG, "Install LCD driver");
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_disp_on_off(panel_handle, DISPLAY_INVERT_COLOR); // false);
-      // esp_lcd_panel_disp_on_off(panel, false);
-        esp_lcd_panel_swap_xy(panel_handle, DISPLAY_SWAP_XY);
-        esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
-
- }
+                                                                   // esp_lcd_panel_disp_on_off(panel, false);
+    esp_lcd_panel_swap_xy(panel_handle, DISPLAY_SWAP_XY);
+    esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
+}
 
 void app_main(void)
 {
@@ -276,11 +267,11 @@ void app_main(void)
     bsp_display_brightness_init();
     bsp_display_brightness_set(0);
     touch_i2c_init();
-	
-    //инициализация дисплея
+
+    // инициализация дисплея
     Initialize_AXS15231B_Display();
-    
-    //инициализация тачскрина
+
+    // инициализация тачскрина
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = LCD_QSPI_H_RES,
         .y_max = LCD_QSPI_V_RES,
@@ -301,7 +292,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_axs15231b(tp_io_handle, &tp_cfg, &touch_handle));
 
-    //const 
+    // const
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     lvgl_cfg.task_priority = 2;
     lvgl_cfg.timer_period_ms = 40;
@@ -313,7 +304,7 @@ void app_main(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle_lcd,
         .panel_handle = panel_handle,
-        .buffer_size = LCD_QSPI_H_RES * LCD_QSPI_V_RES, //LCD_DRAW_BUFF_HEIGHT, // LCD_DRAW_BUFF_HEIGHT,
+        .buffer_size = LCD_QSPI_H_RES * LCD_QSPI_V_RES, // LCD_DRAW_BUFF_HEIGHT, // LCD_DRAW_BUFF_HEIGHT,
         .double_buffer = true,
         .hres = LCD_QSPI_H_RES,
         .vres = LCD_QSPI_V_RES,
@@ -321,19 +312,19 @@ void app_main(void)
         //.mipi_dsi = false,
         .color_format = LV_COLOR_FORMAT_RGB565,
         .rotation = {
-            .swap_xy = 0, //не работает
-            .mirror_x = 0, //работает
-            .mirror_y = 0, //работает
+            .swap_xy = 0,  // не работает
+            .mirror_x = 0, // работает
+            .mirror_y = 0, // работает
         },
         .flags = {
 
-            .buff_spiram = 1, //Использование холста PSRAM
+            .buff_spiram = 1, // Использование холста PSRAM
             .buff_dma = 1,
             .swap_bytes = 1,
             .full_refresh = 1,
             .buff_spiram = 1,
             .sw_rotate = 1, // true: software; false: hardware
-            
+
         }};
 
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
@@ -348,29 +339,24 @@ void app_main(void)
     lvgl_touch_indev = lvgl_port_add_touch(&touch_cfg);
     ESP_LOGI(TAG, "Touch panel initialized successfully");
 
-
-    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_90); //Is Work
-
+    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_90); // Is Work
 
     bsp_display_brightness_set(100);
 
-
     /* Создание и отображение тестового интерфейса */
-   // ESP_LOGI(TAG, "Display LVGL demo UI");
+    // ESP_LOGI(TAG, "Display LVGL demo UI");
     lvgl_port_lock(0);
 
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
 
     /*Create a white label, set its text and align it to the center*/
-    lv_obj_t * label = lv_label_create(lv_screen_active());
+    lv_obj_t *label = lv_label_create(lv_screen_active());
     lv_label_set_text(label, "Hello world");
     lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
     lv_example_get_started_2();
 
-
     lvgl_port_unlock();
 }
-
