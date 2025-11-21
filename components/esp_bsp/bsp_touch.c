@@ -23,7 +23,7 @@ void touch_i2c_init(void)
     ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
 }
 
-void Initialize_AXS15231B_Touch()
+void AXS15231B_touch_init()
 {
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = LCD_QSPI_H_RES,
@@ -46,7 +46,7 @@ void Initialize_AXS15231B_Touch()
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_axs15231b(tp_io_handle, &tp_cfg, &touch_handle));
 }
 
-lv_indev_t *Add_LVGL_Touch(lv_display_t *lvgl_disp)
+lv_indev_t *LVGL_touch_add(lv_display_t *lvgl_disp)
 {
     const lvgl_port_touch_cfg_t touch_cfg = {
         .disp = lvgl_disp,

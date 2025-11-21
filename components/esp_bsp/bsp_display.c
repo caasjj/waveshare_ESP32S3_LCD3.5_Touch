@@ -87,7 +87,7 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     return ESP_OK;
 }
 
-void Initialize_AXS15231B_Display()
+void AXS15231B_display_init()
 {
 
     ESP_LOGI(TAG, "Initialize QSPI bus");
@@ -132,7 +132,7 @@ void Initialize_AXS15231B_Display()
     esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
 }
 
-lv_display_t *Add_LVGL_Display(void)
+lv_display_t *LVGL_display_add(void)
 {
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle_lcd,

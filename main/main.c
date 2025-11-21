@@ -76,8 +76,8 @@ void app_main(void)
     touch_i2c_init();
 
     /* Initialize display and touch hardware */
-    Initialize_AXS15231B_Display();
-    Initialize_AXS15231B_Touch();
+    AXS15231B_display_init();
+    AXS15231B_touch_init();
 
     /* Initialize LVGL port */
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
@@ -86,14 +86,14 @@ void app_main(void)
     ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 
     /* Add display and touch to LVGL */
-    lv_display_t *lvgl_disp = Add_LVGL_Display();
+    lv_display_t *lvgl_disp = LVGL_display_add();
     if (lvgl_disp == NULL)
     {
         ESP_LOGE(TAG, "Failed to create LVGL display");
         return;
     }
 
-    lv_indev_t *lvgl_touch = Add_LVGL_Touch(lvgl_disp);
+    lv_indev_t *lvgl_touch = LVGL_touch_add(lvgl_disp);
     if (lvgl_touch == NULL)
     {
         ESP_LOGW(TAG, "Touch input not available");
@@ -102,7 +102,7 @@ void app_main(void)
     lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0);
 
     /* Turn on backlight */
-    ESP_ERROR_CHECK(bsp_display_brightness_set(50));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(5));
 
     lvgl_port_lock(0);
 

@@ -48,6 +48,6 @@
 extern esp_lcd_panel_io_handle_t io_handle_lcd;
 esp_err_t bsp_display_brightness_init(void);
 esp_err_t bsp_display_brightness_set(int brightness_percent);
-void Initialize_AXS15231B_Display(void);
-lv_display_t *Add_LVGL_Display(void);
+void AXS15231B_display_init(void);
+lv_display_t *LVGL_display_add(void);
 #endif
