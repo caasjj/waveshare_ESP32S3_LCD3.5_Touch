@@ -5,7 +5,9 @@
       "includePath": [
         "${default}",
         "/Users/walidhosseini/esp/v5.5.1/esp-idf/components/**",
-        "${workspaceFolder}/managed_components/**"
+        "${workspaceFolder}/managed_components/**",
+        "${workspaceFolder}/components/esp_bsp/**",
+        "${workspaceFolder}/build/config"
       ],
       "defines": [],
       "cStandard": "c17",

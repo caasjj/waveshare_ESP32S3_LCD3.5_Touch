@@ -1,0 +1,11 @@
+#ifndef BSP_AXS15231B_H
+#define BSP_AXS15231B_H
+
+#define BSP_I2C_NUM (I2C_NUM_0)
+#define BSP_I2C_CLK_SPEED_HZ 400000
+
+#define LCD_QSPI_HOST (SPI2_HOST)
+#define LCD_QSPI_H_RES (320)
+#define LCD_QSPI_V_RES (480)
+
+#endif

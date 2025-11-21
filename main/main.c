@@ -25,70 +25,11 @@
 #include <sys/lock.h>
 #include <sys/param.h>
 #include <unistd.h>
-
-/**************************************************************************************************
- *  pinout
- **************************************************************************************************/
-#define BSP_I2C_NUM (I2C_NUM_0)
-#define BSP_I2C_CLK_SPEED_HZ 400000
-
-#define LCD_QSPI_HOST (SPI2_HOST)
-#define LCD_QSPI_H_RES (320)
-#define LCD_QSPI_V_RES (480)
-
-/**
- * @brief Tear configuration structure
- *
- */
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////// LCD spec of QSPI /////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define LCD_LEDC_CH 1
-
-#define LCD_PIN_NUM_QSPI_CS (GPIO_NUM_12)
-#define LCD_PIN_NUM_QSPI_PCLK (GPIO_NUM_5)
-#define LCD_PIN_NUM_QSPI_DATA0 (GPIO_NUM_1)
-#define LCD_PIN_NUM_QSPI_DATA1 (GPIO_NUM_2)
-#define LCD_PIN_NUM_QSPI_DATA2 (GPIO_NUM_3)
-#define LCD_PIN_NUM_QSPI_DATA3 (GPIO_NUM_4)
-#define LCD_PIN_NUM_QSPI_RST (GPIO_NUM_NC)
-#define LCD_PIN_NUM_QSPI_DC (GPIO_NUM_8)
-#define LCD_PIN_NUM_QSPI_TE (GPIO_NUM_38)
-#define LCD_PIN_NUM_QSPI_BL (GPIO_NUM_6)
-
-#define LCD_PIN_NUM_QSPI_TOUCH_SCL (GPIO_NUM_7)
-#define LCD_PIN_NUM_QSPI_TOUCH_SDA (GPIO_NUM_8)
-#define LCD_PIN_NUM_QSPI_TOUCH_RST (-1)
-#define LCD_PIN_NUM_QSPI_TOUCH_INT (-1)
-///////////////////*************//////////////////////////////////// */
+#include "bsp_display.h"
+#include "bsp_touch.h"
 
 /* Тег для логирования */
 static const char *TAG = "lcd_touch_example";
-
-/* Конфигурация аппаратной части */
-#define LCD_HOST SPI2_HOST                            // Используемый SPI-хост
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000) // Тактовая частота SPI
-#define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL 1               // Уровень активного состояния подсветки
-#define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
-
-////////////////////////////
-/* LCD settings */
-// #define LCD_DRAW_BUFF_HEIGHT (60)
-
-#define DISPLAY_MIRROR_X false
-#define DISPLAY_MIRROR_Y false
-#define DISPLAY_SWAP_XY false
-#define DISPLAY_INVERT_COLOR false
-
-// дисплей
-esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
-// Инициализация ввода-вывода управления ЖК-экраном
-static esp_lcd_panel_handle_t panel_handle = NULL;
-
-/* LCD IO and panel */
-
-static esp_lcd_touch_handle_t touch_handle = NULL;
 
 /* LVGL display and touch */
 static lv_display_t *lvgl_disp = NULL;
@@ -130,62 +71,6 @@ static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x2a, (uint8_t[]){0x00, 0x00, 0x01, 0x3f}, 4, 0},
     {0x2b, (uint8_t[]){0x00, 0x00, 0x01, 0xdf}, 4, 0}};
 
-static void touch_i2c_init(void)
-{
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = LCD_PIN_NUM_QSPI_TOUCH_SDA,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = LCD_PIN_NUM_QSPI_TOUCH_SCL,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = BSP_I2C_CLK_SPEED_HZ};
-    ESP_ERROR_CHECK(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
-}
-
-static esp_err_t bsp_display_brightness_init(void)
-{
-    // Setup LEDC peripheral for PWM backlight control
-    const ledc_channel_config_t LCD_backlight_channel = {
-        .gpio_num = LCD_PIN_NUM_QSPI_BL,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = LCD_LEDC_CH,
-        .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = 1,
-        .duty = 0,
-        .hpoint = 0};
-    const ledc_timer_config_t LCD_backlight_timer = {
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .duty_resolution = LEDC_TIMER_10_BIT,
-        .timer_num = 1,
-        .freq_hz = 5000,
-        .clk_cfg = LEDC_AUTO_CLK};
-
-    ESP_ERROR_CHECK(ledc_timer_config(&LCD_backlight_timer));
-    ESP_ERROR_CHECK(ledc_channel_config(&LCD_backlight_channel));
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_display_brightness_set(int brightness_percent)
-{
-    if (brightness_percent > 100)
-    {
-        brightness_percent = 100;
-    }
-    if (brightness_percent < 0)
-    {
-        brightness_percent = 0;
-    }
-
-    ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
-    uint32_t duty_cycle = (1023 * brightness_percent) / 100; // LEDC resolution set to 10bits, thus: 100% = 1023
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
-
-    return ESP_OK;
-}
-
 static void btn_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -198,6 +83,11 @@ static void btn_event_cb(lv_event_t *e)
         /*Get the first child of the button which is the label and change its text*/
         lv_obj_t *label = lv_obj_get_child(btn, 0);
         lv_label_set_text_fmt(label, "Button: %d", cnt);
+
+        if (cnt % 2 == 0)
+            lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0); // Is Work
+        else
+            lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_270); // Is Work
     }
 }
 
@@ -216,51 +106,6 @@ void lv_example_get_started_2(void)
     lv_obj_center(label);
 }
 
-void Initialize_AXS15231B_Display()
-{
-
-    ESP_LOGI(TAG, "Initialize QSPI bus");
-    const spi_bus_config_t buscfg = AXS15231B_PANEL_BUS_QSPI_CONFIG(LCD_PIN_NUM_QSPI_PCLK,
-                                                                    LCD_PIN_NUM_QSPI_DATA0,
-                                                                    LCD_PIN_NUM_QSPI_DATA1,
-                                                                    LCD_PIN_NUM_QSPI_DATA2,
-                                                                    LCD_PIN_NUM_QSPI_DATA3,
-                                                                    LCD_QSPI_V_RES * 10 * sizeof(uint16_t));
-    ESP_ERROR_CHECK(spi_bus_initialize(LCD_QSPI_HOST, &buscfg, SPI_DMA_CH_AUTO));
-
-    ESP_LOGI(TAG, "Install panel IO");
-
-    esp_lcd_panel_io_spi_config_t io_config = AXS15231B_PANEL_IO_QSPI_CONFIG(LCD_PIN_NUM_QSPI_CS,
-                                                                             NULL,
-                                                                             NULL);
-
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_QSPI_HOST, &io_config, &io_handle_lcd));
-
-    // Инициализируем чип драйвера ЖК-дисплея
-    ESP_LOGI(TAG, "Install LCD driver");
-    const axs15231b_vendor_config_t vendor_config = {
-        .init_cmds = lcd_init_cmds, // Uncomment these line if use custom initialization commands
-        .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(lcd_init_cmds[0]),
-        .flags = {
-            .use_qspi_interface = 1,
-        },
-    };
-    const esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = LCD_PIN_NUM_QSPI_RST,
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB, // Implemented by LCD command `36h`
-        .bits_per_pixel = 16,                       // Implemented by LCD command `3Ah` (16/18)
-        .vendor_config = (void *)&vendor_config,
-    };
-    ESP_ERROR_CHECK(esp_lcd_new_panel_axs15231b(io_handle_lcd, &panel_config, &panel_handle));
-
-    esp_lcd_panel_reset(panel_handle);
-    esp_lcd_panel_init(panel_handle);
-    esp_lcd_panel_disp_on_off(panel_handle, DISPLAY_INVERT_COLOR); // false);
-                                                                   // esp_lcd_panel_disp_on_off(panel, false);
-    esp_lcd_panel_swap_xy(panel_handle, DISPLAY_SWAP_XY);
-    esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
-}
-
 void app_main(void)
 {
 
@@ -268,29 +113,8 @@ void app_main(void)
     bsp_display_brightness_set(0);
     touch_i2c_init();
 
-    // инициализация дисплея
     Initialize_AXS15231B_Display();
-
-    // инициализация тачскрина
-    esp_lcd_touch_config_t tp_cfg = {
-        .x_max = LCD_QSPI_H_RES,
-        .y_max = LCD_QSPI_V_RES,
-        .rst_gpio_num = LCD_PIN_NUM_QSPI_TOUCH_RST,
-        .int_gpio_num = LCD_PIN_NUM_QSPI_TOUCH_INT,
-        .levels = {
-            .reset = 0,
-            .interrupt = 0,
-        },
-        .flags = {
-            .swap_xy = 0,
-            .mirror_x = 0,
-            .mirror_y = 0,
-        },
-    };
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_AXS15231B_CONFIG();
-    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
-    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_axs15231b(tp_io_handle, &tp_cfg, &touch_handle));
+    Initialize_AXS15231B_Touch();
 
     // const
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
@@ -298,53 +122,14 @@ void app_main(void)
     lvgl_cfg.timer_period_ms = 40;
     ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 
-    /* Add LCD screen */
-    ESP_LOGI(TAG, "Adding LCD display");
+    Add_LVGL_Display(&lvgl_disp);
 
-    const lvgl_port_display_cfg_t disp_cfg = {
-        .io_handle = io_handle_lcd,
-        .panel_handle = panel_handle,
-        .buffer_size = LCD_QSPI_H_RES * LCD_QSPI_V_RES, // LCD_DRAW_BUFF_HEIGHT, // LCD_DRAW_BUFF_HEIGHT,
-        .double_buffer = true,
-        .hres = LCD_QSPI_H_RES,
-        .vres = LCD_QSPI_V_RES,
-        .monochrome = false,
-        //.mipi_dsi = false,
-        .color_format = LV_COLOR_FORMAT_RGB565,
-        .rotation = {
-            .swap_xy = 0,  // не работает
-            .mirror_x = 0, // работает
-            .mirror_y = 0, // работает
-        },
-        .flags = {
+    Add_LVGL_Touch(lvgl_disp);
 
-            .buff_spiram = 1, // Использование холста PSRAM
-            .buff_dma = 1,
-            .swap_bytes = 1,
-            .full_refresh = 1,
-            .buff_spiram = 1,
-            .sw_rotate = 1, // true: software; false: hardware
+    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0); // Is Work
 
-        }};
+    bsp_display_brightness_set(50);
 
-    ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
-    lvgl_disp = lvgl_port_add_disp(&disp_cfg);
-
-    /* Add touch input (for selected screen) */
-    const lvgl_port_touch_cfg_t touch_cfg = {
-        .disp = lvgl_disp,
-        .handle = touch_handle,
-    };
-
-    lvgl_touch_indev = lvgl_port_add_touch(&touch_cfg);
-    ESP_LOGI(TAG, "Touch panel initialized successfully");
-
-    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_90); // Is Work
-
-    bsp_display_brightness_set(100);
-
-    /* Создание и отображение тестового интерфейса */
-    // ESP_LOGI(TAG, "Display LVGL demo UI");
     lvgl_port_lock(0);
 
     /*Change the active screen's background color*/

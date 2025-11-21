@@ -17,5 +17,10 @@
     "--background-index",
     "--query-driver=/Users/walidhosseini/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32s3-elf-gcc",
     "--compile-commands-dir=/Users/walidhosseini/Documents/Coding/ESP32/ESPIDF/waveshare/esp32_JC3248W535EN_work_exampl_lvgl_axs15231b/build"
-  ]
+  ],
+  "files.associations": {
+    "esp_lcd_panel_vendor.h": "c",
+    "esp_lcd_panel_io.h": "c",
+    "esp_lvgl_port.h": "c"
+  }
 }
