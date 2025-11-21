@@ -29,10 +29,6 @@
 /* Тег для логирования */
 static const char *TAG = "lcd_touch_example";
 
-/* LVGL display and touch */
-static lv_display_t *lvgl_disp = NULL;
-static lv_indev_t *lvgl_touch_indev = NULL;
-
 static void btn_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -46,10 +42,12 @@ static void btn_event_cb(lv_event_t *e)
         lv_obj_t *label = lv_obj_get_child(btn, 0);
         lv_label_set_text_fmt(label, "Button: %d", cnt);
 
+        /* Get display from the button's screen */
+        lv_display_t *disp = lv_obj_get_display(btn);
         if (cnt % 2 == 0)
-            lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0); // Is Work
+            lv_display_set_rotation(disp, LV_DISP_ROTATION_0);
         else
-            lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_270); // Is Work
+            lv_display_set_rotation(disp, LV_DISP_ROTATION_270);
     }
 }
 
@@ -70,27 +68,41 @@ void lv_example_get_started_2(void)
 
 void app_main(void)
 {
+    ESP_LOGI(TAG, "Starting LCD Touch Example");
 
-    bsp_display_brightness_init();
-    bsp_display_brightness_set(0);
+    /* Initialize hardware peripherals */
+    ESP_ERROR_CHECK(bsp_display_brightness_init());
+    ESP_ERROR_CHECK(bsp_display_brightness_set(0));
     touch_i2c_init();
 
+    /* Initialize display and touch hardware */
     Initialize_AXS15231B_Display();
     Initialize_AXS15231B_Touch();
 
-    // const
+    /* Initialize LVGL port */
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     lvgl_cfg.task_priority = 2;
     lvgl_cfg.timer_period_ms = 40;
     ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 
-    Add_LVGL_Display(&lvgl_disp);
+    /* Add display and touch to LVGL */
+    lv_display_t *lvgl_disp = Add_LVGL_Display();
+    if (lvgl_disp == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to create LVGL display");
+        return;
+    }
 
-    Add_LVGL_Touch(lvgl_disp);
+    lv_indev_t *lvgl_touch = Add_LVGL_Touch(lvgl_disp);
+    if (lvgl_touch == NULL)
+    {
+        ESP_LOGW(TAG, "Touch input not available");
+    }
 
-    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0); // Is Work
+    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0);
 
-    bsp_display_brightness_set(50);
+    /* Turn on backlight */
+    ESP_ERROR_CHECK(bsp_display_brightness_set(50));
 
     lvgl_port_lock(0);
 

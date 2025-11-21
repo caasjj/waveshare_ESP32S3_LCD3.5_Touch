@@ -8,6 +8,7 @@
 
 static const char *TAG = "bsp_touch_axs15231b";
 static esp_lcd_touch_handle_t touch_handle = NULL;
+static lv_indev_t *lvgl_touch_indev = NULL;
 
 void touch_i2c_init(void)
 {
@@ -45,13 +46,17 @@ void Initialize_AXS15231B_Touch()
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_axs15231b(tp_io_handle, &tp_cfg, &touch_handle));
 }
 
-esp_err_t Add_LVGL_Touch(lv_display_t *lvgl_disp)
+lv_indev_t *Add_LVGL_Touch(lv_display_t *lvgl_disp)
 {
     const lvgl_port_touch_cfg_t touch_cfg = {
         .disp = lvgl_disp,
         .handle = touch_handle,
     };
     ESP_LOGI(TAG, "Adding touch input");
-    lvgl_port_add_touch(&touch_cfg);
-    return ESP_OK;
+    lvgl_touch_indev = lvgl_port_add_touch(&touch_cfg);
+    if (lvgl_touch_indev == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to add LVGL touch input");
+    }
+    return lvgl_touch_indev;
 }

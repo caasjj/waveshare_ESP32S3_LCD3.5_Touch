@@ -132,7 +132,7 @@ void Initialize_AXS15231B_Display()
     esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
 }
 
-esp_err_t Add_LVGL_Display(lv_display_t **lvgl_disp)
+lv_display_t *Add_LVGL_Display(void)
 {
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle_lcd,
@@ -161,6 +161,10 @@ esp_err_t Add_LVGL_Display(lv_display_t **lvgl_disp)
         }};
 
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
-    *lvgl_disp = lvgl_port_add_disp(&disp_cfg);
-    return ESP_OK;
+    lv_display_t *disp = lvgl_port_add_disp(&disp_cfg);
+    if (disp == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to add LVGL display");
+    }
+    return disp;
 }
