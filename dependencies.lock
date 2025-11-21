@@ -71,7 +71,8 @@ direct_dependencies:
 - espressif/esp_lcd_axs15231b
 - espressif/esp_lcd_touch
 - espressif/esp_lvgl_port
+- idf
 - lvgl/lvgl
-manifest_hash: d6f50d7f3b0aa5ab7b3dd6b67623e1ce91eda173698b7856a6650ca3d8d206d9
+manifest_hash: 77f7f06275b354e912bc2dd3bca25ce19e34134b8a3c22eb16270242c3df2b44
 target: esp32s3
 version: 2.0.0

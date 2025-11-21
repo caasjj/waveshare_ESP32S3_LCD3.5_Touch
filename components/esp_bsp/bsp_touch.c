@@ -1,12 +1,13 @@
 #include "bsp_touch.h"
-#include "esp_log.h"
 
 #include "driver/i2c.h"
 #include "esp_lcd_touch.h"
 
+#include "esp_log.h"
 #include "esp_err.h"
 
 static const char *TAG = "bsp_touch_axs15231b";
+
 static esp_lcd_touch_handle_t touch_handle = NULL;
 static lv_indev_t *lvgl_touch_indev = NULL;
 
@@ -25,6 +26,9 @@ void touch_i2c_init(void)
 
 void AXS15231B_touch_init()
 {
+    /* Initialize hardware peripherals */
+    touch_i2c_init();
+
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = LCD_QSPI_H_RES,
         .y_max = LCD_QSPI_V_RES,

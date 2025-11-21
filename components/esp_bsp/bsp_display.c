@@ -1,7 +1,6 @@
 
 #include "bsp_display.h"
 #include "esp_log.h"
-#include "esp_lvgl_port.h"
 
 static esp_lcd_panel_handle_t panel_handle;
 esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
@@ -89,6 +88,9 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
 
 void AXS15231B_display_init()
 {
+
+    ESP_ERROR_CHECK(bsp_display_brightness_init());
+    ESP_ERROR_CHECK(bsp_display_brightness_set(0));
 
     ESP_LOGI(TAG, "Initialize QSPI bus");
     const spi_bus_config_t buscfg = AXS15231B_PANEL_BUS_QSPI_CONFIG(LCD_PIN_NUM_QSPI_PCLK,

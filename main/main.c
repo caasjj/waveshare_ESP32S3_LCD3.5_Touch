@@ -1,33 +1,15 @@
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-#include "driver/ledc.h"
-#include "driver/spi_master.h"
-#include "esp_check.h"
-#include "esp_err.h"
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_io_interface.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_lcd_panel_rgb.h"
-#include "esp_lcd_panel_vendor.h"
-#include "esp_log.h"
-#include "esp_random.h"
-#include "esp_timer.h"
+#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "lv_demos.h"
-#include "lvgl.h"
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/lock.h>
-#include <sys/param.h>
-#include <unistd.h>
-#include "bsp_display.h"
-#include "bsp_touch.h"
 
-/* Тег для логирования */
-static const char *TAG = "lcd_touch_example";
+#include "esp_err.h"
+#include "esp_log.h"
+
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#include "lib/touch_display.h"
+
+static const char *TAG = "main";
 
 static void btn_event_cb(lv_event_t *e)
 {
@@ -68,41 +50,7 @@ void lv_example_get_started_2(void)
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "Starting LCD Touch Example");
-
-    /* Initialize hardware peripherals */
-    ESP_ERROR_CHECK(bsp_display_brightness_init());
-    ESP_ERROR_CHECK(bsp_display_brightness_set(0));
-    touch_i2c_init();
-
-    /* Initialize display and touch hardware */
-    AXS15231B_display_init();
-    AXS15231B_touch_init();
-
-    /* Initialize LVGL port */
-    lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    lvgl_cfg.task_priority = 2;
-    lvgl_cfg.timer_period_ms = 40;
-    ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
-
-    /* Add display and touch to LVGL */
-    lv_display_t *lvgl_disp = LVGL_display_add();
-    if (lvgl_disp == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create LVGL display");
-        return;
-    }
-
-    lv_indev_t *lvgl_touch = LVGL_touch_add(lvgl_disp);
-    if (lvgl_touch == NULL)
-    {
-        ESP_LOGW(TAG, "Touch input not available");
-    }
-
-    lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0);
-
-    /* Turn on backlight */
-    ESP_ERROR_CHECK(bsp_display_brightness_set(5));
+    touch_display_init();
 
     lvgl_port_lock(0);
 
