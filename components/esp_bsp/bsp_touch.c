@@ -3,7 +3,6 @@
 
 #include "driver/i2c.h"
 #include "esp_lcd_touch.h"
-#include "esp_lcd_axs15231b.h"
 
 #include "esp_err.h"
 

@@ -4,14 +4,12 @@
 #include "driver/spi_master.h"
 #include "esp_check.h"
 #include "esp_err.h"
-#include "esp_lcd_axs15231b.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_io_interface.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_log.h"
-#include "esp_lvgl_port.h"
 #include "esp_random.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -35,6 +33,7 @@ static const char *TAG = "lcd_touch_example";
 static lv_display_t *lvgl_disp = NULL;
 static lv_indev_t *lvgl_touch_indev = NULL;
 
+#if 0
 static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0xBB, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5A, 0xA5}, 8, 0},
     {0xA0, (uint8_t[]){0xC0, 0x10, 0x00, 0x02, 0x00, 0x00, 0x04, 0x3F, 0x20, 0x05, 0x3F, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00}, 17, 0},
@@ -70,6 +69,7 @@ static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x2C, (uint8_t[]){0x00, 0x00, 0x00, 0x00}, 4, 0},
     {0x2a, (uint8_t[]){0x00, 0x00, 0x01, 0x3f}, 4, 0},
     {0x2b, (uint8_t[]){0x00, 0x00, 0x01, 0xdf}, 4, 0}};
+#endif
 
 static void btn_event_cb(lv_event_t *e)
 {
