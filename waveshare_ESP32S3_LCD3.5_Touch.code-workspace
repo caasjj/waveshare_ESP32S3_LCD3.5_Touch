@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../../../esp/v5.5.1/esp-idf/components"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"esp_lcd_panel_vendor.h": "c",
+			"esp_lcd_panel_io.h": "c",
+			"esp_lvgl_port.h": "c"
+		}
+	}
+}

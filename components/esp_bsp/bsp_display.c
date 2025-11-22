@@ -6,6 +6,7 @@ static esp_lcd_panel_handle_t panel_handle;
 esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
 
 static const char *TAG = "bsp_display_axs15231b";
+static int brightness_percent_cache = 0;
 
 static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0xBB, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5A, 0xA5}, 8, 0},
@@ -86,13 +87,35 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     return ESP_OK;
 }
 
+esp_err_t bsp_display_brightness_get(void)
+{
+    uint32_t duty_cycle = ledc_get_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH);
+    ESP_LOGI(TAG, "Current LCD backlight duty cycle: %d (of 1023)", duty_cycle);
+    int brightness_percent = (int)(duty_cycle * 100.0f / 1023.0f + 0.5); // LEDC resolution set to 10bits, thus: 100% = 1023
+    return brightness_percent;
+}
+
+esp_err_t bsp_display_sleep(void)
+{
+    brightness_percent_cache = bsp_display_brightness_get();
+    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, false));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(0));
+    return ESP_OK;
+}
+
+esp_err_t bsp_display_wake(void)
+{
+    ESP_ERROR_CHECK(bsp_display_brightness_set(brightness_percent_cache)); // Set to 50% brightness on wake
+    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+    return ESP_OK;
+}
+
 void AXS15231B_display_init()
 {
 
     ESP_ERROR_CHECK(bsp_display_brightness_init());
     ESP_ERROR_CHECK(bsp_display_brightness_set(0));
 
-    ESP_LOGI(TAG, "Initialize QSPI bus");
     const spi_bus_config_t buscfg = AXS15231B_PANEL_BUS_QSPI_CONFIG(LCD_PIN_NUM_QSPI_PCLK,
                                                                     LCD_PIN_NUM_QSPI_DATA0,
                                                                     LCD_PIN_NUM_QSPI_DATA1,
@@ -101,8 +124,6 @@ void AXS15231B_display_init()
                                                                     LCD_QSPI_V_RES * 10 * sizeof(uint16_t));
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_QSPI_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
-    ESP_LOGI(TAG, "Install panel IO");
-
     esp_lcd_panel_io_spi_config_t io_config = AXS15231B_PANEL_IO_QSPI_CONFIG(LCD_PIN_NUM_QSPI_CS,
                                                                              NULL,
                                                                              NULL);
@@ -110,7 +131,6 @@ void AXS15231B_display_init()
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_QSPI_HOST, &io_config, &io_handle_lcd));
 
     // Инициализируем чип драйвера ЖК-дисплея
-    ESP_LOGI(TAG, "Install LCD driver");
     const axs15231b_vendor_config_t vendor_config = {
         .init_cmds = lcd_init_cmds, // Uncomment these line if use custom initialization commands
         .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(lcd_init_cmds[0]),
@@ -153,7 +173,6 @@ lv_display_t *LVGL_display_add(void)
         },
         .flags = {
 
-            .buff_spiram = 1, // Использование холста PSRAM
             .buff_dma = 1,
             .swap_bytes = 1,
             .full_refresh = 1,

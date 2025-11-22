@@ -6,6 +6,7 @@
 #include "bsp_display.h"
 #include "bsp_touch.h"
 #include "touch_display.h"
+#include "screensaver.h"
 
 static const char *TAG = "touch_display";
 
@@ -40,5 +41,5 @@ void touch_display_init()
     lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0);
 
     /* Turn on backlight */
-    ESP_ERROR_CHECK(bsp_display_brightness_set(5));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(75));
 }

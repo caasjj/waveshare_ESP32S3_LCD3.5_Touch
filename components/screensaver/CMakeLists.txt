@@ -2,5 +2,5 @@ file(GLOB SRC_FILES "*.c")
 idf_component_register(
     SRCS ${SRC_FILES}
     INCLUDE_DIRS "."
-    REQUIRES esp_driver_ledc esp_lcd_axs15231b esp_lvgl_port
+    REQUIRES esp_bsp
 )

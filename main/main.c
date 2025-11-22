@@ -7,9 +7,20 @@
 
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
+#include "screensaver.h"
 #include "lib/touch_display.h"
 
 static const char *TAG = "main";
+
+static void global_touch_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_PRESSED)
+    {
+        screensaver_reset();
+    }
+}
 
 static void btn_event_cb(lv_event_t *e)
 {
@@ -51,6 +62,15 @@ void lv_example_get_started_2(void)
 void app_main(void)
 {
     touch_display_init();
+    screensaver_init(30); // Set screensaver to activate after 5 seconds of inactivity
+    ESP_LOGI(TAG, "LVGL example started");
+
+    // After initializing LVGL and your input device:
+    lv_indev_t *indev = lv_indev_get_next(NULL);
+    lv_indev_set_group(indev, NULL); // Optional, if you use groups
+
+    // Attach the callback to the input device
+    lv_indev_add_event_cb(indev, global_touch_cb, LV_EVENT_PRESSED, NULL);
 
     lvgl_port_lock(0);
 

@@ -6,7 +6,7 @@
         "${default}",
         "/Users/walidhosseini/esp/v5.5.1/esp-idf/components/**",
         "${workspaceFolder}/managed_components/**",
-        "${workspaceFolder}/components/esp_bsp/**",
+        "${workspaceFolder}/components/**",
         "${workspaceFolder}/build/config"
       ],
       "defines": [],
