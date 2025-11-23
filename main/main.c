@@ -62,7 +62,7 @@ void lv_example_get_started_2(void)
 void app_main(void)
 {
     touch_display_init();
-    screensaver_init(30); // Set screensaver to activate after 5 seconds of inactivity
+    screensaver_init(5); // Set screensaver to activate after 5 seconds of inactivity
     ESP_LOGI(TAG, "LVGL example started");
 
     // After initializing LVGL and your input device:
@@ -86,4 +86,18 @@ void app_main(void)
     lv_example_get_started_2();
 
     lvgl_port_unlock();
+
+    while (1)
+    {
+#ifdef CONFIG_TIMER_TASK_STACK_MONITORING
+        TaskHandle_t timer_task = xTimerGetTimerDaemonTaskHandle();
+        if (timer_task != NULL)
+        {
+            UBaseType_t high_water_mark = uxTaskGetStackHighWaterMark(timer_task);
+            printf("Timer task minimum free stack: %u words\n", (unsigned)high_water_mark);
+        }
+#endif
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        ESP_LOGI(TAG, "Main task heartbeat ...");
+    }
 }
