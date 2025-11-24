@@ -7,21 +7,9 @@
 
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
-#include "screensaver.h"
 #include "lib/touch_display.h"
 
 static const char *TAG = "main";
-
-static void global_touch_cb(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    ESP_LOGI(TAG, "Global touch event code: %d", code);
-    if (code == LV_EVENT_PRESSED)
-    {
-        ESP_LOGI(TAG, "Touch event: LV_EVENT_PRESSED");
-        screensaver_reset();
-    }
-}
 
 static void btn_event_cb(lv_event_t *e)
 {
@@ -63,12 +51,7 @@ void lv_example_get_started_2(void)
 void app_main(void)
 {
     touch_display_init();
-    screensaver_init(CONFIG_ESP32S3_SCREENSAVER_TIMEOUT); // Set screensaver to activate after configured seconds of inactivity
     ESP_LOGI(TAG, "LVGL example started");
-
-    // Attach callback directly to the first input device, the tocuchscreen:
-    lv_indev_t *indev = lv_indev_get_next(NULL);
-    lv_indev_add_event_cb(indev, global_touch_cb, LV_EVENT_PRESSED, NULL);
 
     lvgl_port_lock(0);
 

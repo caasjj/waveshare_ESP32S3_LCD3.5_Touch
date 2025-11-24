@@ -10,6 +10,15 @@
 
 static const char *TAG = "touch_display";
 
+static void global_touch_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_PRESSED)
+    {
+        screensaver_reset();
+    }
+}
+
 void touch_display_init()
 {
     ESP_LOGI(TAG, "Starting LCD Touch Example");
@@ -42,4 +51,12 @@ void touch_display_init()
 
     /* Turn on backlight */
     ESP_ERROR_CHECK(bsp_display_brightness_set(CONFIG_ESP32S3_SCREEN_BRIGHTNESS));
+
+    /* Initialize screensaver */
+
+    // Attach callback directly to the first input device, the tocuchscreen:
+    lv_indev_t *indev = lv_indev_get_next(NULL);
+    lv_indev_add_event_cb(indev, global_touch_cb, LV_EVENT_PRESSED, NULL);
+
+    screensaver_init(CONFIG_ESP32S3_SCREENSAVER_TIMEOUT); // Set screensaver to activate after configured seconds of inactivity
 }
