@@ -31,10 +31,8 @@ esp_err_t screensaver_init(int idle_time_sec)
         ESP_LOGE("screensaver", "Failed to create screensaver timer");
         return ESP_FAIL;
     }
-    ESP_LOGI("screensaver", "Screensaver timer created with %d seconds idle time", idle_time_sec);
 
     err_t = xTimerStart(screensaver_timer, 3);
-    ESP_LOGI("screensaver", "Screensaver timer started with error code: %d", err_t);
     return err_t;
 }
 
