@@ -65,11 +65,8 @@ void app_main(void)
     screensaver_init(5); // Set screensaver to activate after 5 seconds of inactivity
     ESP_LOGI(TAG, "LVGL example started");
 
-    // After initializing LVGL and your input device:
+    // Attach callback directly to the first input device, the tocuchscreen:
     lv_indev_t *indev = lv_indev_get_next(NULL);
-    lv_indev_set_group(indev, NULL); // Optional, if you use groups
-
-    // Attach the callback to the input device
     lv_indev_add_event_cb(indev, global_touch_cb, LV_EVENT_PRESSED, NULL);
 
     lvgl_port_lock(0);
@@ -78,9 +75,10 @@ void app_main(void)
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
 
     /*Create a white label, set its text and align it to the center*/
-    lv_obj_t *label = lv_label_create(lv_screen_active());
+    lv_obj_t *screen = lv_screen_active();
+    lv_obj_t *label = lv_label_create(screen);
     lv_label_set_text(label, "Hello world");
-    lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
+    lv_obj_set_style_text_color(screen, lv_color_hex(0xffffff), LV_PART_MAIN);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
     lv_example_get_started_2();
