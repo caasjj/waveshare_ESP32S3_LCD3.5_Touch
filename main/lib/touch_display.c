@@ -1,7 +1,7 @@
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_log.h"
-
+#include "sdkconfig.h"
 #include "esp_lvgl_port.h"
 #include "bsp_display.h"
 #include "bsp_touch.h"
@@ -20,8 +20,8 @@ void touch_display_init()
 
     /* Initialize LVGL port */
     lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    lvgl_cfg.task_priority = 2;
-    lvgl_cfg.timer_period_ms = 40;
+    lvgl_cfg.task_priority = CONFIG_ESP32S3_LVGL_TASK_PRIORITY;
+    lvgl_cfg.timer_period_ms = CONFIG_ESP32S3_LVGL_TIMER_PERIOD_MS;
     ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 
     /* Add display and touch to LVGL */
@@ -41,5 +41,5 @@ void touch_display_init()
     lv_display_set_rotation(lvgl_disp, LV_DISP_ROTATION_0);
 
     /* Turn on backlight */
-    ESP_ERROR_CHECK(bsp_display_brightness_set(75));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(CONFIG_ESP32S3_SCREEN_BRIGHTNESS));
 }

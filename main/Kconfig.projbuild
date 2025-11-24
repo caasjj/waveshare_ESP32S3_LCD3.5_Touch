@@ -1,0 +1,39 @@
+menu "Waveshare ESP32S3 3.5in LCD Touch Configuration"
+
+    orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
+
+    config ESP32S3_PROGRAM_NAME
+        string "Program name"
+        default "ESP32S3_AXS15231B_3.5in_LCD_Touch"
+        help
+            Select a name for yours program. It will be used as the TAG in log messages.
+    
+    config ESP32S3_SCREENSAVER_TIMEOUT
+        int "Screensaver activation time in seconds"
+        default 30
+        range 5 300
+        help
+            Select the amount of time, in seconds, before the screensaver activates.
+
+    config ESP32S3_SCREEN_BRIGHTNESS
+        int "Screen brightness (0-100%) always on startup"
+        default 50
+        range 0 100
+        help
+            Select the initial screen brightness as a percentage (0-100%).
+
+    config ESP32S3_LVGL_TASK_PRIORITY
+        int "FreeRTOS task priority for LVGL"
+        default 2
+        range 2 28
+        help
+            Select the FreeRTOS task priority for the LVGL task.
+
+    config ESP32S3_LVGL_TIMER_PERIOD_MS
+        int "LVGL timer period in milliseconds"
+        default 40
+        range 10 100
+        help
+            Select the FreeRTOS timer period.       
+
+endmenu

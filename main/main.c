@@ -15,9 +15,10 @@ static const char *TAG = "main";
 static void global_touch_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-
+    ESP_LOGI(TAG, "Global touch event code: %d", code);
     if (code == LV_EVENT_PRESSED)
     {
+        ESP_LOGI(TAG, "Touch event: LV_EVENT_PRESSED");
         screensaver_reset();
     }
 }
@@ -62,7 +63,7 @@ void lv_example_get_started_2(void)
 void app_main(void)
 {
     touch_display_init();
-    screensaver_init(5); // Set screensaver to activate after 5 seconds of inactivity
+    screensaver_init(CONFIG_ESP32S3_SCREENSAVER_TIMEOUT); // Set screensaver to activate after configured seconds of inactivity
     ESP_LOGI(TAG, "LVGL example started");
 
     // Attach callback directly to the first input device, the tocuchscreen:

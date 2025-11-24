@@ -98,15 +98,15 @@ esp_err_t bsp_display_brightness_get(void)
 esp_err_t bsp_display_sleep(void)
 {
     brightness_percent_cache = bsp_display_brightness_get();
-    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, false));
     ESP_ERROR_CHECK(bsp_display_brightness_set(0));
+    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, false));
     return ESP_OK;
 }
 
 esp_err_t bsp_display_wake(void)
 {
-    ESP_ERROR_CHECK(bsp_display_brightness_set(brightness_percent_cache)); // Set to 50% brightness on wake
     // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(brightness_percent_cache));
     return ESP_OK;
 }
 
