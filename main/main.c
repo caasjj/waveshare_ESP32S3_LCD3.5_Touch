@@ -8,6 +8,7 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "lib/touch_display.h"
+#include "lib/freertos_timer_utils.h"
 #include "template.h"
 
 static const char *TAG = "main";
@@ -26,12 +27,7 @@ void app_main(void)
     while (1)
     {
 #ifdef CONFIG_TIMER_TASK_STACK_MONITORING
-        TaskHandle_t timer_task = xTimerGetTimerDaemonTaskHandle();
-        if (timer_task != NULL)
-        {
-            UBaseType_t high_water_mark = uxTaskGetStackHighWaterMark(timer_task);
-            printf("Timer task minimum free stack: %u words\n", (unsigned)high_water_mark);
-        }
+        monitor_timer_task_stack_watermark();
 #endif
         vTaskDelay(pdMS_TO_TICKS(5000));
         ESP_LOGI(TAG, "Main task heartbeat ...");
