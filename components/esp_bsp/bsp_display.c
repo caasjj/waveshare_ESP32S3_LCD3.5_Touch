@@ -105,6 +105,7 @@ esp_err_t bsp_display_sleep(void)
 
 esp_err_t bsp_display_wake(void)
 {
+    // TODO: Figure out why turning off the display causes a black screen on wakeup
     // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
     ESP_ERROR_CHECK(bsp_display_brightness_set(brightness_percent_cache));
     return ESP_OK;
