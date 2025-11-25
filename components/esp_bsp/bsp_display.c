@@ -44,7 +44,7 @@ static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
     {0x2a, (uint8_t[]){0x00, 0x00, 0x01, 0x3f}, 4, 0},
     {0x2b, (uint8_t[]){0x00, 0x00, 0x01, 0xdf}, 4, 0}};
 
-esp_err_t bsp_display_brightness_init(void)
+static esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -68,7 +68,7 @@ esp_err_t bsp_display_brightness_init(void)
     return ESP_OK;
 }
 
-esp_err_t bsp_display_brightness_set(int brightness_percent)
+static esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     if (brightness_percent > 100)
     {
@@ -79,7 +79,6 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
         brightness_percent = 0;
     }
 
-    ESP_LOGI(TAG, "Setting LCD backlight: %d percent", brightness_percent);
     uint32_t duty_cycle = (1023 * brightness_percent) / 100; // LEDC resolution set to 10bits, thus: 100% = 1023
     ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
@@ -87,10 +86,9 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     return ESP_OK;
 }
 
-esp_err_t bsp_display_brightness_get(void)
+static int bsp_display_brightness_get(void)
 {
     uint32_t duty_cycle = ledc_get_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH);
-    ESP_LOGI(TAG, "Current LCD backlight duty cycle: %d (of 1023)", duty_cycle);
     int brightness_percent = (int)(duty_cycle * 100.0f / 1023.0f + 0.5); // LEDC resolution set to 10bits, thus: 100% = 1023
     return brightness_percent;
 }
@@ -99,7 +97,8 @@ esp_err_t bsp_display_sleep(void)
 {
     brightness_percent_cache = bsp_display_brightness_get();
     ESP_ERROR_CHECK(bsp_display_brightness_set(0));
-    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, false));
+    // TODO: Figure out why turning off the display causes a black screen on wakeup
+    // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
     return ESP_OK;
 }
 
@@ -111,12 +110,18 @@ esp_err_t bsp_display_wake(void)
     return ESP_OK;
 }
 
-void AXS15231B_display_init()
+lv_display_t *AXS15231B_display_init()
 {
 
+    //
+    // Initialize LEDC backlight control
+    //
     ESP_ERROR_CHECK(bsp_display_brightness_init());
-    ESP_ERROR_CHECK(bsp_display_brightness_set(0));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(CONFIG_ESP32S3_SCREEN_BRIGHTNESS));
 
+    //
+    // Initialize the SPI bus for LCD QSPI interface
+    //
     const spi_bus_config_t buscfg = AXS15231B_PANEL_BUS_QSPI_CONFIG(LCD_PIN_NUM_QSPI_PCLK,
                                                                     LCD_PIN_NUM_QSPI_DATA0,
                                                                     LCD_PIN_NUM_QSPI_DATA1,
@@ -125,13 +130,17 @@ void AXS15231B_display_init()
                                                                     LCD_QSPI_V_RES * 10 * sizeof(uint16_t));
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_QSPI_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
+    //
+    // Initialize the LCD panel IO (io_handle_lcd) using QSPI interface
+    //
     esp_lcd_panel_io_spi_config_t io_config = AXS15231B_PANEL_IO_QSPI_CONFIG(LCD_PIN_NUM_QSPI_CS,
                                                                              NULL,
                                                                              NULL);
-
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_QSPI_HOST, &io_config, &io_handle_lcd));
 
-    // Инициализируем чип драйвера ЖК-дисплея
+    //
+    // Initialize the LCD AXS15231B display driver
+    //
     const axs15231b_vendor_config_t vendor_config = {
         .init_cmds = lcd_init_cmds, // Uncomment these line if use custom initialization commands
         .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(lcd_init_cmds[0]),
@@ -149,44 +158,42 @@ void AXS15231B_display_init()
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
-    esp_lcd_panel_disp_on_off(panel_handle, DISPLAY_INVERT_COLOR); // false);
-                                                                   // esp_lcd_panel_disp_on_off(panel, false);
-    esp_lcd_panel_swap_xy(panel_handle, DISPLAY_SWAP_XY);
-    esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
-}
 
-lv_display_t *LVGL_display_add(void)
-{
+    //
+    // Initialize LVGL port
+    //
+    lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    lvgl_cfg.task_priority = CONFIG_ESP32S3_LVGL_TASK_PRIORITY;
+    lvgl_cfg.timer_period_ms = CONFIG_ESP32S3_LVGL_TIMER_PERIOD_MS;
+    ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
+
+    //
+    // Add LVGL display
+    //
     const lvgl_port_display_cfg_t disp_cfg = {
-        .io_handle = io_handle_lcd,
-        .panel_handle = panel_handle,
-        .buffer_size = LCD_QSPI_H_RES * LCD_QSPI_V_RES, // LCD_DRAW_BUFF_HEIGHT, // LCD_DRAW_BUFF_HEIGHT,
-        .double_buffer = true,
-        .hres = LCD_QSPI_H_RES,
-        .vres = LCD_QSPI_V_RES,
+        .io_handle = io_handle_lcd,                     // LCD panel IO handle
+        .panel_handle = panel_handle,                   // LCD panel handle
+        .buffer_size = LCD_QSPI_H_RES * LCD_QSPI_V_RES, // in pixels
+        .double_buffer = true,                          // enable double buffering
+        .hres = LCD_QSPI_H_RES,                         // in pixels
+        .vres = LCD_QSPI_V_RES,                         // in pixels
         .monochrome = false,
-        //.mipi_dsi = false,
-        .color_format = LV_COLOR_FORMAT_RGB565,
-        .rotation = {
-            .swap_xy = 0,  // не работает
-            .mirror_x = 0, // работает
-            .mirror_y = 0, // работает
-        },
+        .color_format = LV_COLOR_FORMAT_RGB565, // LV_COLOR_FORMAT_RGB565 or LV_COLOR_FORMAT_RGB888
         .flags = {
-
-            .buff_dma = 1,
-            .swap_bytes = 1,
-            .full_refresh = 1,
-            .buff_spiram = 1,
-            .sw_rotate = 1, // true: software; false: hardware
-
+            .buff_dma = 1,     // true: use DMA; false: use PSRAM
+            .swap_bytes = 1,   // true: swap byte order; false: don't swap
+            .full_refresh = 1, // true: always full refresh; false: partial refresh
+            .buff_spiram = 1,  // true: use PSRAM for buffer; false: use internal RAM
+            .sw_rotate = 1     // true: software; false: hardware
         }};
 
-    ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     lv_display_t *disp = lvgl_port_add_disp(&disp_cfg);
     if (disp == NULL)
     {
         ESP_LOGE(TAG, "Failed to add LVGL display");
     }
+
+    ESP_LOGI(TAG, "AXS15231B display initialized");
+
     return disp;
 }
