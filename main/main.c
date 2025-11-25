@@ -15,8 +15,9 @@ static const char *TAG = "main";
 
 void app_main(void)
 {
+    ESP_LOGI(TAG, "Initializing application...");
     touch_display_init();
-    ESP_LOGI(TAG, "LVGL example started");
+    ESP_LOGI(TAG, "Application initialized");
 
     lvgl_port_lock(0);
 
