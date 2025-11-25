@@ -26,7 +26,8 @@ void app_main(void)
 
     while (1)
     {
-#if ESP32S3_PROGRAM_ENABLE_TIMER_WATERMARK_MONITORING
+
+#if CONFIG_ESP32S3_PROGRAM_ENABLE_TIMER_WATERMARK_MONITORING
         monitor_timer_task_stack_watermark();
 #endif
         vTaskDelay(pdMS_TO_TICKS(5000));
