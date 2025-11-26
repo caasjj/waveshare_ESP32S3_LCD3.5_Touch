@@ -5,7 +5,7 @@
 static esp_lcd_panel_handle_t panel_handle;
 esp_lcd_panel_io_handle_t io_handle_lcd = NULL;
 
-static const char *TAG = "bsp_display_axs15231b";
+static const char *TAG = "bsp_display";
 static int brightness_percent_cache = 0;
 
 static axs15231b_lcd_init_cmd_t lcd_init_cmds[] = {
@@ -86,16 +86,22 @@ static esp_err_t bsp_display_brightness_set(int brightness_percent)
     return ESP_OK;
 }
 
-static int bsp_display_brightness_get(void)
+static esp_err_t bsp_display_brightness_get(int *brightness_percent)
 {
     uint32_t duty_cycle = ledc_get_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH);
-    int brightness_percent = (int)(duty_cycle * 100.0f / 1023.0f + 0.5); // LEDC resolution set to 10bits, thus: 100% = 1023
-    return brightness_percent;
+    if (duty_cycle == LEDC_ERR_DUTY)
+    {
+        ESP_LOGE(TAG, "Failed to get brightness duty cycle");
+        return ESP_ERR_INVALID_ARG;
+    }
+    ESP_LOGI(TAG, "Current brightness duty cycle: %d", duty_cycle);
+    *brightness_percent = (int)(duty_cycle * 100.0f / 1023.0f + 0.5); // LEDC resolution set to 10bits, thus: 100% = 1023
+    return ESP_OK;
 }
 
 esp_err_t bsp_display_sleep(void)
 {
-    brightness_percent_cache = bsp_display_brightness_get();
+    ESP_ERROR_CHECK(bsp_display_brightness_get(&brightness_percent_cache));
     ESP_ERROR_CHECK(bsp_display_brightness_set(0));
     // TODO: Figure out why turning off the display causes a black screen on wakeup
     // ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
