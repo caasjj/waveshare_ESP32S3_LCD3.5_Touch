@@ -26,6 +26,6 @@ void touch_display_init()
     lv_indev_t *lvgl_touch = AXS15231B_touch_init(lvgl_disp);
 
     /* Initialize screensaver */
-    screensaver_init(CONFIG_ESP32S3_SCREENSAVER_TIMEOUT); // Set screensaver to activate after configured seconds of inactivity
+    screensaver_init(CONFIG_ESP32S3_SCREENSAVER_TIMEOUT, &bsp_display_sleep, &bsp_display_wake); // Set screensaver to activate after configured seconds of inactivity
     lv_indev_add_event_cb(lvgl_touch, global_touch_cb, LV_EVENT_PRESSED, NULL);
 }

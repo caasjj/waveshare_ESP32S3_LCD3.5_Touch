@@ -1,25 +1,31 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
-#include "bsp_display.h"
 #include "screensaver.h"
 #include "esp_log.h"
 #include "esp_err.h"
 
 TimerHandle_t screensaver_timer = NULL;
 bool screensaver_active = false;
+esp_err_t (*screensleep_callback)(void) = NULL;
+esp_err_t (*screenwake_callback)(void) = NULL;
 
 void pxCallbackFunction(TimerHandle_t xTimer)
 {
     // Code to activate the screensaver goes here
     screensaver_active = true;
-    bsp_display_sleep();
+    if (screensleep_callback != NULL)
+    {
+        ESP_ERROR_CHECK(screensleep_callback());
+    }
 }
 
-esp_err_t screensaver_init(int idle_time_sec)
+esp_err_t screensaver_init(int idle_time_sec, esp_err_t (*screensleep_ptr)(void), esp_err_t (*screenwake_ptr)(void))
 {
 
     esp_err_t err_t;
 
+    screensleep_callback = screensleep_ptr;
+    screenwake_callback = screenwake_ptr;
     screensaver_timer = xTimerCreate("ScreensaverTimer",
                                      pdMS_TO_TICKS(idle_time_sec * 1000),
                                      pdFALSE,
@@ -47,9 +53,9 @@ void screensaver_reset()
             ESP_LOGE("screensaver", "Screensaver timer reset with error code: %d", err_t);
         }
     }
-    if (screensaver_active)
+    if (screensaver_active && screenwake_callback != NULL)
     {
-        bsp_display_wake();
+        ESP_ERROR_CHECK(screenwake_callback());
     }
     screensaver_active = false;
 }
