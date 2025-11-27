@@ -8,15 +8,6 @@ menu "Waveshare ESP32S3 3.5in LCD Touch Configuration"
             default "ESP32S3_AXS15231B_3.5in_LCD_Touch"
             help
                Select a name for yours program. It will be used as the TAG in log messages.
-        
-        config ESP32S3_PROGRAM_ENABLE_TIMER_WATERMARK_MONITORING
-            bool "Enable Timer Task Stack Watermark Monitoring"
-            default n
-            help
-                Enable this option to monitor the stack usage of the FreeRTOS timer task.
-                When enabled, the program will periodically log the minimum free stack
-                space of the timer task, which can help in identifying stack overflows
-                or memory issues.
     endmenu
 
     menu "Screen Settings"
@@ -26,6 +17,15 @@ menu "Waveshare ESP32S3 3.5in LCD Touch Configuration"
             range 5 300
             help
                 Select the amount of time, in seconds, before the screensaver activates.
+
+        config ESP32S3_PROGRAM_ENABLE_TIMER_WATERMARK_MONITORING
+            bool "Enable Timer Task Stack Watermark Monitoring"
+            default n
+            help
+                Enable this option to monitor the stack usage of the FreeRTOS timer task.
+                When enabled, the program will periodically log the minimum free stack
+                space of the timer task, which can help in identifying stack overflows
+                or memory issues.
 
         config ESP32S3_SCREEN_BRIGHTNESS
             int "Screen brightness (0-100%) always on startup"
