@@ -37,14 +37,14 @@ This project is built for the [Waveshare ESP32-S3-Touch-LCD-3.5B](https://www.wa
 See the full [Documentation](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-3.5B)
 
 ## Board Overview
-![Overview](Waveshare-ESP32-S3-Touch-LCD-3.5B-Overview.PNG)
+![Overview](Waveshare-ESP32-S3-Touch-LCD-3.5B-Overview.png)
 
 ## Pinout
 Main USB Connector is at the TOP of the image, ie board is held vertically with USB connector facing up)
-![Pinout](Waveshare-ESP32-S3-Touch-LCD-3.5B-Pinout.PNG)
+![Pinout](Waveshare-ESP32-S3-Touch-LCD-3.5B-Pinout.png)
 
 ## Dimensions
-![Dimensions](Waveshare-ESP32-S3-Touch-LCD-3.5B-Dimensions.PNG)
+![Dimensions](Waveshare-ESP32-S3-Touch-LCD-3.5B-Dimensions.png)
 
 ## Schematics
 ![Schematics](Waveshare-ESP32-S3-Touch-LCD-3.5B-Schematic.png)
